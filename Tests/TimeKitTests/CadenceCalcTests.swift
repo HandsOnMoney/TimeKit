@@ -32,6 +32,8 @@ struct CadenceCalcTests {
         let (start, _) = calc.interval(containing: midMonth, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 3, day: 1))
+        
+        // TODO: why end is ignored? check that it equals end of month
     }
 
     @Test func monthForwardEndsOnLastDayOfMonth() {
@@ -42,6 +44,8 @@ struct CadenceCalcTests {
         let (_, end) = calc.interval(containing: midMonth, forward: true)
         // Assert
         #expect(end == date(year: 2024, month: 3, day: 31))
+        
+        // TODO: start is ignored
     }
 
     @Test func monthForwardFebruary28InNonLeapYear() {
@@ -54,6 +58,8 @@ struct CadenceCalcTests {
         #expect(start == date(year: 2023, month: 2, day: 1))
         #expect(end == date(year: 2023, month: 2, day: 28))
     }
+    
+    // TODO: the following tests ignore either start or end. Make sure to check thhose properties.
 
     @Test func monthForwardFebruary29InLeapYear() {
         // Arrange

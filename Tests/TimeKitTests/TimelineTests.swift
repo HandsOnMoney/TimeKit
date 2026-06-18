@@ -339,7 +339,7 @@ struct TimelineTests {
         // Move June's start to before May 1 (before prev period's start)
         let invalidStart = isoDate(year: 2024, month: 4, day: 30)
         // Act & Assert
-        #expect(throws: (any Error).self) { // TODO: check that exact error was thrown
+        #expect(throws: TimeError.self) {
             try timeline.change(
                 start: invalidStart,
                 end: timeline[1].end,
@@ -357,7 +357,7 @@ struct TimelineTests {
         // Move May's end to after June's end
         let invalidEnd = isoDate(year: 2024, month: 7, day: 1)
         // Act & Assert
-        #expect(throws: (any Error).self) { // TODO: check that exact error was thrown
+        #expect(throws: TimeError.self) {
             try timeline.change(
                 start: timeline[0].start,
                 end: invalidEnd,

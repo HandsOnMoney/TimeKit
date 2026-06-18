@@ -29,11 +29,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1))
         let midMonth = date(year: 2024, month: 3, day: 15)
         // Act
-        let (start, _) = calc.interval(containing: midMonth, forward: true)
+        let (start, end) = calc.interval(containing: midMonth, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 3, day: 1))
-        
-        // TODO: why end is ignored? check that it equals end of month
+        #expect(end == date(year: 2024, month: 3, day: 31))
     }
 
     @Test func monthForwardEndsOnLastDayOfMonth() {
@@ -41,11 +40,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1))
         let midMonth = date(year: 2024, month: 3, day: 15)
         // Act
-        let (_, end) = calc.interval(containing: midMonth, forward: true)
+        let (start, end) = calc.interval(containing: midMonth, forward: true)
         // Assert
+        #expect(start == date(year: 2024, month: 3, day: 1))
         #expect(end == date(year: 2024, month: 3, day: 31))
-        
-        // TODO: start is ignored
     }
 
     @Test func monthForwardFebruary28InNonLeapYear() {
@@ -59,15 +57,14 @@ struct CadenceCalcTests {
         #expect(end == date(year: 2023, month: 2, day: 28))
     }
     
-    // TODO: the following tests ignore either start or end. Make sure to check thhose properties.
-
     @Test func monthForwardFebruary29InLeapYear() {
         // Arrange
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1))
         let feb = date(year: 2024, month: 2, day: 10)
         // Act
-        let (_, end) = calc.interval(containing: feb, forward: true)
+        let (start, end) = calc.interval(containing: feb, forward: true)
         // Assert
+        #expect(start == date(year: 2024, month: 2, day: 1))
         #expect(end == date(year: 2024, month: 2, day: 29))
     }
 
@@ -80,10 +77,11 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .week, calendar: cal, gap: DateComponents(day: 1))
         let wednesday = date(year: 2024, month: 3, day: 13, calendar: cal)
         // Act
-        let (start, _) = calc.interval(containing: wednesday, forward: true)
+        let (start, end) = calc.interval(containing: wednesday, forward: true)
         // Assert
         let weekday = cal.component(.weekday, from: start)
         #expect(weekday == cal.firstWeekday)
+        #expect(end == date(year: 2024, month: 3, day: 16))
     }
 
     @Test func weekForwardEndIsStartPlusSixDays() {
@@ -115,8 +113,9 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .days(count: 7), calendar: .iso, gap: DateComponents(day: 1))
         let anchor = date(year: 2024, month: 1, day: 10)
         // Act
-        let (_, end) = calc.interval(containing: anchor, forward: false)
+        let (start, end) = calc.interval(containing: anchor, forward: false)
         // Assert
+        #expect(start == date(year: 2024, month: 1, day: 3))
         #expect(end == anchor)
     }
 
@@ -125,9 +124,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .days(count: 7), calendar: .iso, gap: DateComponents(day: 1))
         let anchor = date(year: 2024, month: 1, day: 10)
         // Act
-        let (start, _) = calc.interval(containing: anchor, forward: false)
+        let (start, end) = calc.interval(containing: anchor, forward: false)
         // Assert
         #expect(start == date(year: 2024, month: 1, day: 3))
+        #expect(end == anchor)
     }
 
     // MARK: interval(containing:forward:) — .quarter
@@ -137,9 +137,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .quarter, calendar: .iso, gap: DateComponents(day: 1))
         let feb = date(year: 2024, month: 2, day: 15)
         // Act
-        let (start, _) = calc.interval(containing: feb, forward: true)
+        let (start, end) = calc.interval(containing: feb, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 1, day: 1))
+        #expect(end == date(year: 2024, month: 3, day: 31))
     }
 
     @Test func quarterForwardQ2StartsApril1() {
@@ -147,9 +148,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .quarter, calendar: .iso, gap: DateComponents(day: 1))
         let may = date(year: 2024, month: 5, day: 1)
         // Act
-        let (start, _) = calc.interval(containing: may, forward: true)
+        let (start, end) = calc.interval(containing: may, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 4, day: 1))
+        #expect(end == date(year: 2024, month: 6, day: 30))
     }
 
     @Test func quarterForwardQ3StartsJuly1() {
@@ -157,9 +159,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .quarter, calendar: .iso, gap: DateComponents(day: 1))
         let aug = date(year: 2024, month: 8, day: 15)
         // Act
-        let (start, _) = calc.interval(containing: aug, forward: true)
+        let (start, end) = calc.interval(containing: aug, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 7, day: 1))
+        #expect(end == date(year: 2024, month: 9, day: 30))
     }
 
     @Test func quarterForwardQ4StartsOctober1() {
@@ -167,18 +170,9 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .quarter, calendar: .iso, gap: DateComponents(day: 1))
         let nov = date(year: 2024, month: 11, day: 5)
         // Act
-        let (start, _) = calc.interval(containing: nov, forward: true)
+        let (start, end) = calc.interval(containing: nov, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 10, day: 1))
-    }
-
-    @Test func quarterForwardQ1EndsDecember31() {
-        // Arrange
-        let calc = CadenceCalc(length: .quarter, calendar: .iso, gap: DateComponents(day: 1))
-        let nov = date(year: 2024, month: 11, day: 5)
-        // Act
-        let (_, end) = calc.interval(containing: nov, forward: true)
-        // Assert
         #expect(end == date(year: 2024, month: 12, day: 31))
     }
 
@@ -189,9 +183,10 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .year, calendar: .iso, gap: DateComponents(day: 1))
         let mid = date(year: 2024, month: 6, day: 15)
         // Act
-        let (start, _) = calc.interval(containing: mid, forward: true)
+        let (start, end) = calc.interval(containing: mid, forward: true)
         // Assert
         #expect(start == date(year: 2024, month: 1, day: 1))
+        #expect(end == date(year: 2024, month: 12, day: 31))
     }
 
     @Test func yearForwardEndsDecember31() {
@@ -199,8 +194,9 @@ struct CadenceCalcTests {
         let calc = CadenceCalc(length: .year, calendar: .iso, gap: DateComponents(day: 1))
         let mid = date(year: 2024, month: 6, day: 15)
         // Act
-        let (_, end) = calc.interval(containing: mid, forward: true)
+        let (start, end) = calc.interval(containing: mid, forward: true)
         // Assert
+        #expect(start == date(year: 2024, month: 1, day: 1))
         #expect(end == date(year: 2024, month: 12, day: 31))
     }
 
@@ -299,9 +295,10 @@ struct CadenceCalcTests {
         let fixedDate = date(year: 2024, month: 6, day: 15)
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1), now: { fixedDate })
         // Act
-        let (start, _) = calc.current()
+        let (start, end) = calc.current()
         // Assert
         #expect(start == date(year: 2024, month: 6, day: 1))
+        #expect(end == date(year: 2024, month: 6, day: 30))
     }
 
     @Test func currentUsesProvidedDateOverNowClosure() {
@@ -310,9 +307,10 @@ struct CadenceCalcTests {
         let overrideDate = date(year: 2024, month: 9, day: 5)
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1), now: { nowDate })
         // Act
-        let (start, _) = calc.current(date: overrideDate)
+        let (start, end) = calc.current(date: overrideDate)
         // Assert
         #expect(start == date(year: 2024, month: 9, day: 1))
+        #expect(end == date(year: 2024, month: 9, day: 30))
     }
 
     // MARK: Chaining previous/next

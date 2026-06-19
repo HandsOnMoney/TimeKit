@@ -4,49 +4,49 @@ public struct Timeline<Period: TimePeriod>: RandomAccessCollection {
     private let cadenceCalc: CadenceCalc
 
     private var periods: [Period]
-    
+
     private var indexLookup: [Period.ID: Int]
 
     private let makePeriod: (Date, Date) -> Period
-    
+
     public init(cadenceCalc: CadenceCalc, makePeriod: @escaping (Date, Date) -> Period) {
         self.cadenceCalc = cadenceCalc
         self.makePeriod = makePeriod
         self.periods = []
         self.indexLookup = [:]
     }
-    
+
     // MARK: RandomAccessCollection conformance
-    
+
     public typealias Index = Int
 
     public var startIndex: Int { periods.startIndex }
     public var endIndex: Int { periods.endIndex }
-    
+
     public subscript(index: Int) -> Period { periods[index] }
-    
+
     // MARK: Public methods
 
     public mutating func extend(start: Date, end: Date) -> [Period] {
         var periodsToInsert: [Period] = []
         periodsToInsert.append(contentsOf: extendBack(to: start))
         periodsToInsert.append(contentsOf: extendForward(to: end))
-        
+
         rebuildIndexLookup()
-        
+
         return periodsToInsert
     }
-    
+
     public mutating func extend(_ date: Date) -> [Period] {
         var periodsToInsert: [Period] = []
         periodsToInsert.append(contentsOf: extendBack(to: date))
         periodsToInsert.append(contentsOf: extendForward(to: date))
-        
+
         rebuildIndexLookup()
-        
+
         return periodsToInsert
     }
-    
+
     public mutating func change(start: Date, end: Date, of id: Period.ID) throws -> [Period] {
         let newStart = start
         let newEnd = end
@@ -78,29 +78,29 @@ public struct Timeline<Period: TimePeriod>: RandomAccessCollection {
 
         periods[index].change(start: newStart, end: newEnd)
         periodsToUpdate.append(periods[index])
-        
+
         rebuildIndexLookup()
 
         return periodsToUpdate
     }
-    
+
     public mutating func load(_ periods: [Period]) {
         self.periods = periods.sorted(by: { $0.start < $1.start })
-        
+
         rebuildIndexLookup()
     }
-    
+
     public func first(near date: Date) -> Period? {
         periods.first(where: { date >= $0.start && date <= $0.end })
     }
-    
+
     public func index(of id: Period.ID) -> Int? {
         self.indexLookup[id]
     }
-    
+
     // MARK: internal methods
 
-    private mutating func extendBack(to date: Date) -> [Period]{
+    private mutating func extendBack(to date: Date) -> [Period] {
         var periodsToInsert: [Period] = []
 
         // Insert periods before the oldest existing period.
@@ -122,16 +122,16 @@ public struct Timeline<Period: TimePeriod>: RandomAccessCollection {
             oldestPeriodStart = newPeriodStart
             periodsToInsert.append(makePeriod(newPeriodStart, newPeriodEnd))
         }
-        
+
         // Update the array and rebuild the lookup
         periods.insert(contentsOf: periodsToInsert.reversed(), at: 0)
 
         return periodsToInsert
     }
-    
+
     private mutating func extendForward(to date: Date) -> [Period] {
         var periodsToInsert: [Period] = []
-        
+
         // get last existing interval
         // generate periods until today
         var newestPeriodEnd = periods.last?.end ?? Date()
@@ -141,13 +141,13 @@ public struct Timeline<Period: TimePeriod>: RandomAccessCollection {
             newestPeriodEnd = newPeriodEnd
             periodsToInsert.append(makePeriod(newPeriodStart, newPeriodEnd))
         }
-        
+
         // Update the array and rebuild the lookup
         periods.append(contentsOf: periodsToInsert)
 
         return periodsToInsert
     }
-    
+
     private mutating func rebuildIndexLookup() {
         self.indexLookup = Dictionary(uniqueKeysWithValues: periods.indices.map({ (periods[$0].id, $0) }))
     }

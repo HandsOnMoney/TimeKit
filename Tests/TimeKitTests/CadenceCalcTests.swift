@@ -56,7 +56,7 @@ struct CadenceCalcTests {
         #expect(start == date(year: 2023, month: 2, day: 1))
         #expect(end == date(year: 2023, month: 2, day: 28))
     }
-    
+
     @Test func monthForwardFebruary29InLeapYear() {
         // Arrange
         let calc = CadenceCalc(length: .month, calendar: .iso, gap: DateComponents(day: 1))

@@ -9,6 +9,8 @@
 
 - follow Conventional Commits (https://www.conventionalcommits.org/en/v1.0.0-beta.2/)
 - use `chore` for maintenance that does not affect production code, tests, or docs (e.g. .gitignore changes)
+- when asked to commit use --author "AI <doppelganger@ai>"
+- never mention that commit is co-authored with LLM. Setting author is more than enough.
 
 # General
 

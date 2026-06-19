@@ -4,7 +4,7 @@ import Foundation
 
 // MARK: - Test fixture
 
-struct TestPeriod: TimePeriod {
+struct TestPeriod: TimePeriod, Equatable {
     let id: UUID
     var start: Date
     var end: Date
@@ -364,6 +364,75 @@ struct TimelineTests {
                 of: mayID
             )
         }
+    }
+
+    // MARK: index(of:)
+
+    @Test func indexOfOnlyPeriodIsZero() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        _ = timeline.extend(isoDate(year: 2024, month: 6, day: 15))
+        let id = timeline[0].id
+        // Act
+        let result = timeline.index(of: id)
+        // Assert
+        #expect(result == 0)
+    }
+
+    @Test func indexOfEachPeriodMatchesPositionInCollection() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        _ = timeline.extend(start: isoDate(year: 2024, month: 1, day: 1),
+                             end: isoDate(year: 2024, month: 3, day: 31))
+        // Act & Assert
+        for i in timeline.indices {
+            #expect(timeline.index(of: timeline[i].id) == i)
+        }
+    }
+
+    @Test func indexUpdatesAfterExtendingBackward() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        _ = timeline.extend(isoDate(year: 2024, month: 6, day: 15))
+        let juneID = timeline[0].id
+        // Act: prepend two months
+        _ = timeline.extend(isoDate(year: 2024, month: 4, day: 1))
+        // Assert: June is now at index 2
+        #expect(timeline.index(of: juneID) == 2)
+    }
+
+    @Test func indexUpdatesAfterLoad() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        _ = timeline.extend(isoDate(year: 2024, month: 6, day: 15))
+        let oldID = timeline[0].id
+        let newPeriod = TestPeriod(start: isoDate(year: 2025, month: 1, day: 1),
+                                   end: isoDate(year: 2025, month: 1, day: 31))
+        // Act
+        timeline.load([newPeriod])
+        // Assert: old ID is gone, new period is at index 0
+        #expect(timeline.index(of: oldID) == nil)
+        #expect(timeline.index(of: newPeriod.id) == 0)
+    }
+
+    @Test func indexOfUnknownIDReturnsNil() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        _ = timeline.extend(isoDate(year: 2024, month: 6, day: 15))
+        let unknownID = UUID()
+        // Act
+        let result = timeline.index(of: unknownID)
+        // Assert
+        #expect(result == nil)
+    }
+
+    @Test func indexOnEmptyTimelineReturnsNil() {
+        // Arrange
+        let timeline = makeMonthTimeline()
+        // Act
+        let result = timeline.index(of: UUID())
+        // Assert
+        #expect(result == nil)
     }
 
     // MARK: extendBack / extendForward internals via public extend

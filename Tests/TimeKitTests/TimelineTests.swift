@@ -471,4 +471,45 @@ struct TimelineTests {
         #expect(inserted.isEmpty)
         #expect(timeline.count == countBefore)
     }
+
+    // MARK: Continuity invariants
+
+    @Test func extendRangeLastPeriodContainsEndDate() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        let endDate = isoDate(year: 2024, month: 6, day: 15)
+        // Act
+        _ = timeline.extend(start: isoDate(year: 2024, month: 1, day: 1), end: endDate)
+        // Assert
+        let last = timeline.last!
+        #expect(last.start <= endDate)
+        #expect(endDate <= last.end)
+    }
+
+    @Test func extendRangeConsecutivePeriodsHaveNoGaps() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        // Act
+        _ = timeline.extend(start: isoDate(year: 2024, month: 1, day: 1),
+                             end: isoDate(year: 2024, month: 6, day: 30))
+        // Assert: each period starts exactly one gap-day after the previous period ends
+        for i in 0..<(timeline.count - 1) {
+            let expectedNextStart = isoCalendar.date(byAdding: DateComponents(day: 1), to: timeline[i].end)!
+            #expect(timeline[i + 1].start == expectedNextStart)
+        }
+    }
+
+    @Test func extendRangeAcrossYearBoundaryHasCorrectDates() {
+        // Arrange
+        var timeline = makeMonthTimeline()
+        // Act
+        _ = timeline.extend(start: isoDate(year: 2024, month: 12, day: 1),
+                             end: isoDate(year: 2025, month: 1, day: 31))
+        // Assert
+        #expect(timeline.count == 2)
+        #expect(timeline[0].start == isoDate(year: 2024, month: 12, day: 1))
+        #expect(timeline[0].end == isoDate(year: 2024, month: 12, day: 31))
+        #expect(timeline[1].start == isoDate(year: 2025, month: 1, day: 1))
+        #expect(timeline[1].end == isoDate(year: 2025, month: 1, day: 31))
+    }
 }
